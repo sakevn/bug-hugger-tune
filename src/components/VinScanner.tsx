@@ -3,7 +3,7 @@ import { Camera, X, Loader2, ScanLine, ImagePlus, Zap, Sparkles } from "lucide-r
 import { motion, AnimatePresence } from "framer-motion";
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
-import Tesseract from "tesseract.js";
+// tesseract.js is dynamically imported on-demand to keep it out of the main bundle
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -138,6 +138,7 @@ export function VinScanner({ open, onOpenChange, onDetected }: Props) {
         d[i] = d[i + 1] = d[i + 2] = v;
       }
       ctx.putImageData(img, 0, 0);
+      const { default: Tesseract } = await import("tesseract.js");
       const { data } = await Tesseract.recognize(canvas, "eng", {
         // @ts-expect-error tesseract param
         tessedit_char_whitelist: "ABCDEFGHJKLMNPRSTUVWXYZ0123456789",
@@ -222,6 +223,7 @@ export function VinScanner({ open, onOpenChange, onDetected }: Props) {
         const vin = sanitizeVinCandidate(result.getText());
         if (vin) { URL.revokeObjectURL(url); handleSuccess(vin); return; }
       } catch { /* fallback OCR */ }
+      const { default: Tesseract } = await import("tesseract.js");
       const { data } = await Tesseract.recognize(file, "eng", {
         // @ts-expect-error tesseract param
         tessedit_char_whitelist: "ABCDEFGHJKLMNPRSTUVWXYZ0123456789",

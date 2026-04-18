@@ -169,24 +169,48 @@ function Field({ label, value, mono }: { label: string; value: string | null | u
 }
 
 function ExportMenu({ rows, disabled }: { rows: VehicleRow[]; disabled: boolean }) {
+  const [busy, setBusy] = useState(false);
+
+  async function handleExport(format: "csv" | "json" | "xlsx" | "pdf") {
+    if (busy) return;
+    setBusy(true);
+    const heavy = format === "xlsx" || format === "pdf";
+    const tid = heavy ? toast.loading(`Đang chuẩn bị file ${format.toUpperCase()}…`) : undefined;
+    try {
+      await exportVehicles(rows, format);
+      if (tid) toast.success(`Đã xuất ${format.toUpperCase()}`, { id: tid });
+    } catch (e) {
+      const msg = (e as Error).message || "Không xuất được file";
+      if (tid) toast.error(msg, { id: tid });
+      else toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" disabled={disabled}>
-          <Download className="h-4 w-4 mr-1" /> Xuất
+        <Button variant="outline" disabled={disabled || busy}>
+          {busy ? (
+            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4 mr-1" />
+          )}{" "}
+          Xuất
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => exportVehicles(rows, "csv")}>
+        <DropdownMenuItem onClick={() => handleExport("csv")}>
           <FileSpreadsheet className="h-4 w-4 mr-2" /> CSV (UTF-8)
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => exportVehicles(rows, "json")}>
+        <DropdownMenuItem onClick={() => handleExport("json")}>
           <FileJson className="h-4 w-4 mr-2" /> JSON
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => exportVehicles(rows, "xlsx")}>
+        <DropdownMenuItem onClick={() => handleExport("xlsx")}>
           <FileType className="h-4 w-4 mr-2" /> Excel (.xlsx)
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => exportVehicles(rows, "pdf")}>
+        <DropdownMenuItem onClick={() => handleExport("pdf")}>
           <FileText className="h-4 w-4 mr-2" /> PDF
         </DropdownMenuItem>
       </DropdownMenuContent>
