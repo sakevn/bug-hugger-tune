@@ -16,15 +16,13 @@ interface AiResult {
 export const scanVinAi = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => Input.parse(d))
   .handler(async ({ data }): Promise<AiResult> => {
-    // Vercel AI Gateway - uses AI_GATEWAY_API_KEY env var
-    // Falls back to gateway.ai.vercel.sh which requires the API key
-    const gatewayUrl = "https://gateway.ai.vercel.sh/v1";
-    const apiKey = process.env.AI_GATEWAY_API_KEY;
-    
+    // Lovable AI Gateway - tự động dùng LOVABLE_API_KEY
+    const gatewayUrl = "https://ai.gateway.lovable.dev/v1";
+    const apiKey = process.env.LOVABLE_API_KEY;
+
     if (!apiKey) {
-      // If no API key, provide helpful error message
       throw new Error(
-        "AI Vision chưa được cấu hình. Vui lòng thêm AI_GATEWAY_API_KEY trong Settings → Vars."
+        "AI Vision chưa được cấu hình. LOVABLE_API_KEY không khả dụng."
       );
     }
 
@@ -45,7 +43,7 @@ export const scanVinAi = createServerFn({ method: "POST" })
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -86,7 +84,7 @@ export const scanVinAi = createServerFn({ method: "POST" })
     });
 
     if (res.status === 429) throw new Error("Quá nhiều yêu cầu, thử lại sau ít phút.");
-    if (res.status === 402) throw new Error("Hết credit AI, vui lòng kiểm tra Vercel AI Gateway.");
+    if (res.status === 402) throw new Error("Hết credit AI. Vui lòng nạp thêm credit Lovable AI.");
     if (!res.ok) {
       const t = await res.text();
       throw new Error(`AI Gateway lỗi ${res.status}: ${t.slice(0, 200)}`);
