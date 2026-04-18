@@ -1,7 +1,3 @@
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-
 export interface VehicleRow {
   id: string;
   user_id: string;
@@ -65,7 +61,10 @@ function download(blob: Blob, filename: string) {
 
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 
-export function exportVehicles(rows: VehicleRow[], format: "csv" | "json" | "xlsx" | "pdf") {
+export async function exportVehicles(
+  rows: VehicleRow[],
+  format: "csv" | "json" | "xlsx" | "pdf"
+): Promise<void> {
   if (!rows.length) return;
   const flat = rows.map(flatten);
 
@@ -73,7 +72,8 @@ export function exportVehicles(rows: VehicleRow[], format: "csv" | "json" | "xls
     const blob = new Blob([JSON.stringify(rows, null, 2)], {
       type: "application/json;charset=utf-8",
     });
-    return download(blob, `vehicles-${stamp()}.json`);
+    download(blob, `vehicles-${stamp()}.json`);
+    return;
   }
 
   if (format === "csv") {
@@ -85,31 +85,36 @@ export function exportVehicles(rows: VehicleRow[], format: "csv" | "json" | "xls
     };
     const lines = [headers.join(",")];
     for (const r of flat) lines.push(headers.map((h) => escape(r[h])).join(","));
-    // BOM for UTF-8 Excel compatibility
     const blob = new Blob(["\uFEFF" + lines.join("\n")], {
       type: "text/csv;charset=utf-8",
     });
-    return download(blob, `vehicles-${stamp()}.csv`);
+    download(blob, `vehicles-${stamp()}.csv`);
+    return;
   }
 
   if (format === "xlsx") {
+    const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(flat, { header: HEADERS.map((h) => h.label) });
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vehicles");
     const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-    return download(
+    download(
       new Blob([out], { type: "application/octet-stream" }),
       `vehicles-${stamp()}.xlsx`
     );
+    return;
   }
 
   if (format === "pdf") {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
     const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
     doc.setFontSize(14);
     doc.text("VinSight Scan – Danh sach xe", 40, 36);
     doc.setFontSize(9);
     doc.text(`Xuat luc: ${new Date().toLocaleString()}`, 40, 52);
-    // jsPDF default font does not support Vietnamese diacritics, keep ASCII headers
     const headers = ["VIN", "Make", "Model", "Year", "Owner", "Plate", "Engine#", "Color", "Seats", "RegDate"];
     const body = rows.map((r) => {
       const d = (r.decoded ?? {}) as any;

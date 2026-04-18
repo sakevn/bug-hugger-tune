@@ -54,23 +54,43 @@ function EditVehiclePage() {
 
   async function save() {
     if (!v || !user) return;
+    // Normalize values before sending to DB
+    const seatsRaw = v.seats;
+    const normalizedSeats =
+      seatsRaw == null || seatsRaw === ("" as any) || Number.isNaN(Number(seatsRaw))
+        ? null
+        : Number(seatsRaw);
+    const normalizedRegDate =
+      v.registration_date && String(v.registration_date).trim() !== ""
+        ? v.registration_date
+        : null;
+
     setSaving(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("vehicles")
       .update({
-        owner_name: v.owner_name,
-        address: v.address,
-        engine_number: v.engine_number,
-        color: v.color,
-        license_plate: v.license_plate,
-        seats: v.seats,
-        registration_date: v.registration_date,
-        notes: v.notes,
+        owner_name: v.owner_name?.trim() || null,
+        address: v.address?.trim() || null,
+        engine_number: v.engine_number?.trim() || null,
+        color: v.color?.trim() || null,
+        license_plate: v.license_plate?.trim() || null,
+        seats: normalizedSeats,
+        registration_date: normalizedRegDate,
+        notes: v.notes?.trim() || null,
       })
-      .eq("id", v.id);
+      .eq("id", v.id)
+      .eq("user_id", user.id)
+      .select()
+      .maybeSingle();
     setSaving(false);
     if (error) return toast.error(error.message);
-    toast.success("Đã lưu");
+    if (!data) {
+      return toast.error("Cập nhật thất bại", {
+        description: "Không tìm thấy xe hoặc bạn không có quyền sửa đổi.",
+      });
+    }
+    setV(data as any);
+    toast.success("Đã lưu thay đổi");
   }
 
   async function uploadPhoto(file: File) {
@@ -82,11 +102,15 @@ function EditVehiclePage() {
       .from("vehicle-docs")
       .upload(path, file, { upsert: true, contentType: file.type });
     if (upErr) return toast.error(upErr.message);
-    const { error: dbErr } = await supabase
+    const { data: updated, error: dbErr } = await supabase
       .from("vehicles")
       .update({ registration_photo_url: path })
-      .eq("id", v.id);
+      .eq("id", v.id)
+      .eq("user_id", user.id)
+      .select()
+      .maybeSingle();
     if (dbErr) return toast.error(dbErr.message);
+    if (!updated) return toast.error("Không lưu được đường dẫn ảnh (không có quyền).");
     patch({ registration_photo_url: path });
     const { data: signed } = await supabase.storage
       .from("vehicle-docs")
@@ -96,9 +120,17 @@ function EditVehiclePage() {
   }
 
   async function removePhoto() {
-    if (!v?.registration_photo_url) return;
+    if (!v?.registration_photo_url || !user) return;
     await supabase.storage.from("vehicle-docs").remove([v.registration_photo_url]);
-    await supabase.from("vehicles").update({ registration_photo_url: null }).eq("id", v.id);
+    const { data: updated, error } = await supabase
+      .from("vehicles")
+      .update({ registration_photo_url: null })
+      .eq("id", v.id)
+      .eq("user_id", user.id)
+      .select()
+      .maybeSingle();
+    if (error) return toast.error(error.message);
+    if (!updated) return toast.error("Không xoá được ảnh (không có quyền).");
     patch({ registration_photo_url: null });
     setPhotoPreview(null);
     toast.success("Đã xoá ảnh");
