@@ -20,6 +20,7 @@ import { Route as DashboardVehiclesRouteImport } from './routes/dashboard.vehicl
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardKeysRouteImport } from './routes/dashboard.keys'
 import { Route as DashboardDocsRouteImport } from './routes/dashboard.docs'
+import { Route as ApiKycWebhookRouteImport } from './routes/api.kyc-webhook'
 import { Route as ApiDecodeRouteImport } from './routes/api.decode'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminKeysRouteImport } from './routes/admin.keys'
@@ -80,6 +81,11 @@ const DashboardDocsRoute = DashboardDocsRouteImport.update({
   path: '/docs',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ApiKycWebhookRoute = ApiKycWebhookRouteImport.update({
+  id: '/api/kyc-webhook',
+  path: '/api/kyc-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDecodeRoute = ApiDecodeRouteImport.update({
   id: '/api/decode',
   path: '/api/decode',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/admin/keys': typeof AdminKeysRoute
   '/admin/logs': typeof AdminLogsRoute
   '/api/decode': typeof ApiDecodeRoute
+  '/api/kyc-webhook': typeof ApiKycWebhookRoute
   '/dashboard/docs': typeof DashboardDocsRoute
   '/dashboard/keys': typeof DashboardKeysRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/admin/keys': typeof AdminKeysRoute
   '/admin/logs': typeof AdminLogsRoute
   '/api/decode': typeof ApiDecodeRoute
+  '/api/kyc-webhook': typeof ApiKycWebhookRoute
   '/dashboard/docs': typeof DashboardDocsRoute
   '/dashboard/keys': typeof DashboardKeysRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/admin/keys': typeof AdminKeysRoute
   '/admin/logs': typeof AdminLogsRoute
   '/api/decode': typeof ApiDecodeRoute
+  '/api/kyc-webhook': typeof ApiKycWebhookRoute
   '/dashboard/docs': typeof DashboardDocsRoute
   '/dashboard/keys': typeof DashboardKeysRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/admin/keys'
     | '/admin/logs'
     | '/api/decode'
+    | '/api/kyc-webhook'
     | '/dashboard/docs'
     | '/dashboard/keys'
     | '/dashboard/profile'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/admin/keys'
     | '/admin/logs'
     | '/api/decode'
+    | '/api/kyc-webhook'
     | '/dashboard/docs'
     | '/dashboard/keys'
     | '/dashboard/profile'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/admin/keys'
     | '/admin/logs'
     | '/api/decode'
+    | '/api/kyc-webhook'
     | '/dashboard/docs'
     | '/dashboard/keys'
     | '/dashboard/profile'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ApiDecodeRoute: typeof ApiDecodeRoute
+  ApiKycWebhookRoute: typeof ApiKycWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/docs'
       preLoaderRoute: typeof DashboardDocsRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/api/kyc-webhook': {
+      id: '/api/kyc-webhook'
+      path: '/api/kyc-webhook'
+      fullPath: '/api/kyc-webhook'
+      preLoaderRoute: typeof ApiKycWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/decode': {
       id: '/api/decode'
@@ -374,6 +394,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ApiDecodeRoute: ApiDecodeRoute,
+  ApiKycWebhookRoute: ApiKycWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
