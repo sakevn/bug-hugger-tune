@@ -94,6 +94,60 @@ export type Database = {
           },
         ]
       }
+      kyc_verifications: {
+        Row: {
+          country: string | null
+          created_at: string
+          document_type: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          payload: Json | null
+          phone: string | null
+          risk_score: number | null
+          status: string
+          updated_at: string
+          user_id: string
+          verification_id: string
+          verification_url: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          document_type?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          payload?: Json | null
+          phone?: string | null
+          risk_score?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verification_id: string
+          verification_url?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          document_type?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          payload?: Json | null
+          phone?: string | null
+          risk_score?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verification_id?: string
+          verification_url?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -101,6 +155,7 @@ export type Database = {
           display_name: string | null
           email: string | null
           id: string
+          kyc_status: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -108,6 +163,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id: string
+          kyc_status?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -115,6 +171,7 @@ export type Database = {
           display_name?: string | null
           email?: string | null
           id?: string
+          kyc_status?: string | null
         }
         Relationships: []
       }
