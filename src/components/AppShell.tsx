@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, ScanLine, KeyRound, Shield, LayoutDashboard, Code2, UserCog, Car } from "lucide-react";
+import { LogOut, ScanLine, KeyRound, Shield, LayoutDashboard, Code2, UserCog, Car, ShieldCheck } from "lucide-react";
 import { ReactNode } from "react";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -13,6 +13,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const links = [
     { to: "/dashboard", label: "Quét VIN", icon: ScanLine },
     { to: "/dashboard/vehicles", label: "Tài sản", icon: Car },
+    { to: "/dashboard/kyc", label: "KYC", icon: ShieldCheck },
     { to: "/dashboard/keys", label: "API Keys", icon: KeyRound },
     { to: "/dashboard/docs", label: "Tài liệu API", icon: Code2 },
     { to: "/dashboard/profile", label: "Hồ sơ", icon: UserCog },
