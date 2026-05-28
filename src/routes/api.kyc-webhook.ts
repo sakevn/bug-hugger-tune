@@ -41,10 +41,14 @@ export const Route = createFileRoute("/api/kyc-webhook")({
             : event === "verification.expired" ? "expired"
             : "pending");
 
-        const update: Record<string, unknown> = {
-          status: newStatus,
-          payload,
-        };
+        const update: {
+          status: string;
+          payload: unknown;
+          country?: string;
+          risk_score?: number;
+          full_name?: string;
+          verified_at?: string;
+        } = { status: newStatus, payload };
         if (payload?.country) update.country = payload.country;
         if (typeof payload?.risk_score === "number") update.risk_score = payload.risk_score;
         if (payload?.full_name) update.full_name = payload.full_name;
