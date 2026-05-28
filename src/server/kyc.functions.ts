@@ -4,6 +4,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { z } from "zod";
 
 const KYC_BASE = "https://kyc.baylenvietnam.com";
+const PUBLIC_BASE =
+  process.env.PUBLIC_APP_URL ?? "https://bug-hugger-tune.lovable.app";
 
 const StartInput = z.object({
   full_name: z.string().trim().min(1).max(120),
@@ -16,7 +18,7 @@ export const startKycVerification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => StartInput.parse(d))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.KYC_API_KEY;
+    const apiKey = process.env.BAYLEN_KYC_API_KEY ?? process.env.KYC_API_KEY;
     if (!apiKey) throw new Error("KYC_API_KEY chưa được cấu hình");
 
     const res = await fetch(`${KYC_BASE}/api/v1/verifications`, {
@@ -30,6 +32,8 @@ export const startKycVerification = createServerFn({ method: "POST" })
         email: data.email,
         phone: data.phone,
         document_type: data.document_type,
+        callback_url: `${PUBLIC_BASE}/api/kyc-webhook`,
+        metadata: { user_id: context.userId },
       }),
     });
 
