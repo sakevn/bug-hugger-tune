@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/kyc-webhook")({
         if (!secret) return new Response("Server misconfigured", { status: 500 });
 
         const raw = await request.text();
-        const headerSig = request.headers.get("x-signature") ?? "";
+        const headerSig = request.headers.get("x-lovable-signature") ?? request.headers.get("x-signature") ?? "";
         const sig = headerSig.startsWith("sha256=") ? headerSig.slice(7) : headerSig;
         const expected = crypto.createHmac("sha256", secret).update(raw).digest("hex");
         if (!sig || !safeEq(sig, expected)) {
@@ -29,13 +29,18 @@ export const Route = createFileRoute("/api/kyc-webhook")({
           return new Response("Invalid JSON", { status: 400 });
         }
 
-        const verification_id = payload?.verification_id;
+        const verification_id = payload?.data?.session_id ?? payload?.session_id ?? payload?.verification_id;
         if (!verification_id) return new Response("Missing verification_id", { status: 400 });
 
         const event: string = payload?.event ?? "";
         const newStatus: string =
+          payload?.data?.status ??
           payload?.status ??
-          (event === "verification.completed" ? "approved"
+          (event === "session.completed" ? "completed"
+            : event === "session.failed" ? "failed"
+            : event === "session.updated" ? "pending"
+            : event === "session.created" ? "Not Started"
+            : event === "verification.completed" ? "approved"
             : event === "verification.failed" ? "failed"
             : event === "verification.review_required" ? "review"
             : event === "verification.expired" ? "expired"
@@ -49,10 +54,10 @@ export const Route = createFileRoute("/api/kyc-webhook")({
           full_name?: string;
           verified_at?: string;
         } = { status: newStatus, payload: payload as any };
-        if (payload?.country) update.country = payload.country;
-        if (typeof payload?.risk_score === "number") update.risk_score = payload.risk_score;
-        if (payload?.full_name) update.full_name = payload.full_name;
-        if (payload?.verified_at) update.verified_at = payload.verified_at;
+        if (payload?.data?.country ?? payload?.country) update.country = payload?.data?.country ?? payload.country;
+        if (typeof (payload?.data?.risk_score ?? payload?.risk_score) === "number") update.risk_score = payload?.data?.risk_score ?? payload.risk_score;
+        if (payload?.data?.full_name ?? payload?.full_name) update.full_name = payload?.data?.full_name ?? payload.full_name;
+        if (payload?.data?.verified_at ?? payload?.verified_at) update.verified_at = payload?.data?.verified_at ?? payload.verified_at;
 
         const { data: row, error } = await supabaseAdmin
           .from("kyc_verifications")
